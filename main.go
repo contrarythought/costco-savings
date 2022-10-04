@@ -22,7 +22,7 @@ func main() {
 		}
 		app.Run()
 	} else {
-		// run program if time.json was recorded at an earlier date
+		// run program if time.json was modified at an earlier date
 		if result, err := app.RanToday(); !result && err == nil {
 			fmt.Println("here")
 			app.Run()
