@@ -1,7 +1,9 @@
 package net_help
 
 import (
+	"compress/flate"
 	"compress/gzip"
+	"compress/lzw"
 	"io"
 	"net/http"
 )
@@ -30,7 +32,6 @@ func DecodeGzip(body io.ReadCloser) ([]byte, error) {
 		return nil, err
 	}
 	defer gz_reader.Close()
-
 	buf, err := io.ReadAll(gz_reader)
 	if err != nil {
 		return nil, err
@@ -38,15 +39,34 @@ func DecodeGzip(body io.ReadCloser) ([]byte, error) {
 	return buf, nil
 }
 
-// TODO
 func DecodeLZW(body io.ReadCloser, order string, width int) ([]byte, error) {
 	switch order {
 	case "msb":
+		lzw_reader := lzw.NewReader(body, lzw.MSB, width)
+		defer lzw_reader.Close()
+		buf, err := io.ReadAll(lzw_reader)
+		if err != nil {
+			return nil, err
+		}
+		return buf, nil
 	case "lsb":
+		lzw_reader := lzw.NewReader(body, lzw.LSB, width)
+		defer lzw_reader.Close()
+		buf, err := io.ReadAll(lzw_reader)
+		if err != nil {
+			return nil, err
+		}
+		return buf, nil
 	}
+	return nil, nil
 }
 
-// TODO
 func DecodeDeflate(body io.ReadCloser) ([]byte, error) {
-
+	flate_reader := flate.NewReader(body)
+	defer flate_reader.Close()
+	buf, err := io.ReadAll(flate_reader)
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
 }
