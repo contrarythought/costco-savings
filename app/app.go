@@ -89,6 +89,23 @@ func SetupTimeFile() error {
 }
 
 func Run() {
+	// modify time.json
+	time_file, err := os.Create("time.json")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer time_file.Close()
+
+	curr_date := NewDate()
+
+	json_fmt, err := json.MarshalIndent(curr_date, "", "	")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Fprint(time_file, string(json_fmt))
+
+	// create and send new request
 	req, err := http.NewRequest("GET", URL, nil)
 	if err != nil {
 		log.Fatal(err)
@@ -104,6 +121,7 @@ func Run() {
 
 	var resp_html []byte
 
+	// determine response encoding and decode
 	switch resp.Header.Get("content-encoding") {
 	case "gzip":
 		resp_html, err = DecodeGzip(resp.Body)
@@ -132,6 +150,7 @@ func Run() {
 		}
 	}
 
+	// record response html into a file
 	html_file, err := os.Create("savings3.html")
 	if err != nil {
 		log.Fatal(err)
@@ -142,6 +161,13 @@ func Run() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	// insert items into database
+}
+
+// TODO
+func GetSaleItems(html_file *os.File) {
+
 }
 
 func RanToday() (bool, error) {
