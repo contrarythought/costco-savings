@@ -108,7 +108,7 @@ func SearchForTimeFile() (bool, error) {
 	}
 
 	// if time.json is not in wd, create it
-	var have_file bool = false
+	have_file := false
 	for _, entry := range wd_entries {
 		if strings.Compare(entry.Name(), "time.json") == 0 {
 			have_file = true
