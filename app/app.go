@@ -4,6 +4,7 @@ import (
 	"compress/flate"
 	"compress/gzip"
 	"compress/lzw"
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,6 +20,35 @@ var (
 	URL = "https://www.costco.com/warehouse-savings.html"
 )
 
+type Creds struct {
+	User     string `json:"user"`
+	Password string `json:"password"`
+}
+
+func NewCreds() *Creds {
+	return &Creds{
+		User:     "",
+		Password: "",
+	}
+}
+
+func (c *Creds) GetCreds(cred_file string) error {
+	file, err := os.Open(cred_file)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	buf, err := io.ReadAll(file)
+	if err != nil {
+		return err
+	}
+	err = json.Unmarshal(buf, c)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 type Date struct {
 	Day   int        `json:"day"`
 	Month time.Month `json:"month"`
@@ -30,6 +60,20 @@ func NewDate() *Date {
 		Day:   time.Now().Day(),
 		Month: time.Now().Month(),
 		Year:  time.Now().Year(),
+	}
+}
+
+type Item struct {
+	Name     string
+	OldPrice float32
+	NewPrice float32
+}
+
+func NewItem(Name string, OldPrice float32, NewPrice float32) *Item {
+	return &Item{
+		Name:     Name,
+		OldPrice: OldPrice,
+		NewPrice: NewPrice,
 	}
 }
 
@@ -88,7 +132,7 @@ func SetupTimeFile() error {
 	return nil
 }
 
-func Run() {
+func Run(db *sql.DB) {
 	// modify time.json
 	time_file, err := os.Create("time.json")
 	if err != nil {
