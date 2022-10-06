@@ -14,6 +14,8 @@ import (
 	"path"
 	"strings"
 	"time"
+
+	_ "github.com/lib/pq"
 )
 
 var (
