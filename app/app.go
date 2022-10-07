@@ -8,12 +8,15 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"golang.org/x/net/html"
 
 	_ "github.com/lib/pq"
 )
@@ -208,12 +211,46 @@ func Run(db *sql.DB) {
 		log.Fatal(err)
 	}
 
+	buf, err := ioutil.ReadFile("savings3.html")
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	// insert items into database
+	data := GetSaleItems(string(buf))
+	fmt.Println(data)
 }
 
 // TODO
-func GetSaleItems(html_file *os.File) {
-
+func GetSaleItems(html_file string) []string {
+	file, err := os.Create("tmp.txt")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	tok := html.NewTokenizer(strings.NewReader(html_file))
+	var vals []string
+	var is_li bool
+	for {
+		tt := tok.Next()
+		switch {
+		case tt == html.ErrorToken:
+			_, err = fmt.Fprint(file, vals)
+			if err != nil {
+				log.Fatal(err)
+			}
+			return vals
+		case tt == html.StartTagToken:
+			t := tok.Token()
+			is_li = t.Data == "div"
+		case tt == html.TextToken:
+			t := tok.Token()
+			if is_li {
+				vals = append(vals, t.Data)
+			}
+			is_li = false
+		}
+	}
 }
 
 func RanToday() (bool, error) {
